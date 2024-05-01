@@ -1,0 +1,44 @@
+<table
+  mat-table
+  [dataSource]="dataSource"
+  matSort
+  matSortActive="Score"
+  matSortDirection="desc"
+  matSortDisableClear
+>
+  <!-- Position Column -->
+  <ng-container matColumnDef="PlayerId">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      Player Id
+    </mat-header-cell>
+    <mat-cell *matCellDef="let results"> {{ results.PlayerId }} </mat-cell>
+  </ng-container>
+
+  <ng-container matColumnDef="Name">
+    <mat-header-cell
+      *matHeaderCellDef
+      mat-sort-header
+      sortActionDescription="Sort by number"
+    >
+      Name
+    </mat-header-cell>
+    <mat-cell *matCellDef="let results"> {{ results.Name }} </mat-cell>
+  </ng-container>
+
+  <!-- Name Column -->
+  <ng-container matColumnDef="Score">
+    <mat-header-cell *matHeaderCellDef mat-sort-header> Score </mat-header-cell>
+    <mat-cell *matCellDef="let results"> {{ results.Score }} </mat-cell>
+  </ng-container>
+
+  <!-- Weight Column -->
+  <ng-container matColumnDef="GamesPlayed">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      Games Played
+    </mat-header-cell>
+    <mat-cell *matCellDef="let results"> {{ results.GamesPlayed }} </mat-cell>
+  </ng-container>
+
+  <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+  <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
+</table>

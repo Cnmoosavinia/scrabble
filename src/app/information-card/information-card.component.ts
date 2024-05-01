@@ -5,7 +5,7 @@ import { CommonModule } from '@angular/common';
   selector: 'app-information-card',
   standalone: true,
   imports: [CommonModule],
-  template: ` <p>information-card works!</p> `,
+  templateUrl: './information-card.component.html',
   styleUrl: './information-card.component.css',
 })
 export class InformationCardComponent {}
