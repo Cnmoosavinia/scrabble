@@ -1,44 +1,86 @@
-import { Component } from '@angular/core';
-import { MatTableModule } from '@angular/material/table';
+import { LiveAnnouncer } from '@angular/cdk/a11y';
+import { CommonModule } from '@angular/common';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { HttpClient } from '@angular/common/http';
+import { Component, AfterViewInit, ViewChild, OnInit } from '@angular/core';
+import { MatSortModule, MatSort, Sort } from '@angular/material/sort';
+import { MatTableModule, MatTableDataSource } from '@angular/material/table';
+
+export interface Result {
+  PlayerId: number;
+  Name: string;
+  Score: number;
+  GamesPlayed: number;
+}
+
+export interface Player {
+  PlayerId: number;
+  Name: string;
+}
+
+export interface GetResultsResponse {
+  Results: Result[];
+}
+
+export interface GetPlayersResponse {
+  Players: Player[];
+}
+
+// const ELEMENT_DATA: Result[] = [
+//   { PlayerId: 5, Name: 'Ross Bronson', Score: 410, GamesPlayed: 16 },
+//   { PlayerId: 2, Name: 'Jron Ashworth', Score: 640, GamesPlayed: 15 },
+//   { PlayerId: 6, Name: 'Jally Smith', Score: 200, GamesPlayed: 9 },
+//   { PlayerId: 1, Name: 'Carl Krueager', Score: 700, GamesPlayed: 9 },
+//   { PlayerId: 4, Name: 'Bony Troy', Score: 150, GamesPlayed: 9 },
+//   { PlayerId: 3, Name: 'Ashly Earnshaw', Score: 50, GamesPlayed: 3 },
+// ];
 
 @Component({
   selector: 'app-leaderboard',
   standalone: true,
-  imports: [MatTableModule],
+  imports: [MatTableModule, MatSortModule],
   templateUrl: './leaderboard.component.html',
   styleUrl: './leaderboard.component.css',
 })
-export class LeaderboardComponent {
-  displayedColumns = ['position', 'name', 'weight', 'symbol'];
-  dataSource = ELEMENT_DATA;
-}
+export class LeaderboardComponent implements AfterViewInit, OnInit {
+  displayedColumns: string[] = ['PlayerId', 'Name', 'Score', 'GamesPlayed'];
+  dataSource = new MatTableDataSource([] as Result[]);
 
-export interface Element {
-  name: string;
-  position: number;
-  weight: number;
-  symbol: string;
-}
+  constructor(
+    private _liveAnnouncer: LiveAnnouncer,
+    private http: HttpClient
+  ) {}
+  ngOnInit(): void {
+    const apiUrl = 'https://mocki.io/v1/d21f15c7-a0bb-4140-b036-7e4e3cfcf6f5';
+    const apiReq = this.http.get<GetResultsResponse>(apiUrl);
 
-const ELEMENT_DATA: Element[] = [
-  { position: 1, name: 'Hydrogen', weight: 1.0079, symbol: 'H' },
-  { position: 2, name: 'Helium', weight: 4.0026, symbol: 'He' },
-  { position: 3, name: 'Lithium', weight: 6.941, symbol: 'Li' },
-  { position: 4, name: 'Beryllium', weight: 9.0122, symbol: 'Be' },
-  { position: 5, name: 'Boron', weight: 10.811, symbol: 'B' },
-  { position: 6, name: 'Carbon', weight: 12.0107, symbol: 'C' },
-  { position: 7, name: 'Nitrogen', weight: 14.0067, symbol: 'N' },
-  { position: 8, name: 'Oxygen', weight: 15.9994, symbol: 'O' },
-  { position: 9, name: 'Fluorine', weight: 18.9984, symbol: 'F' },
-  { position: 10, name: 'Neon', weight: 20.1797, symbol: 'Ne' },
-  { position: 11, name: 'Sodium', weight: 22.9897, symbol: 'Na' },
-  { position: 12, name: 'Magnesium', weight: 24.305, symbol: 'Mg' },
-  { position: 13, name: 'Aluminum', weight: 26.9815, symbol: 'Al' },
-  { position: 14, name: 'Silicon', weight: 28.0855, symbol: 'Si' },
-  { position: 15, name: 'Phosphorus', weight: 30.9738, symbol: 'P' },
-  { position: 16, name: 'Sulfur', weight: 32.065, symbol: 'S' },
-  { position: 17, name: 'Chlorine', weight: 35.453, symbol: 'Cl' },
-  { position: 18, name: 'Argon', weight: 39.948, symbol: 'Ar' },
-  { position: 19, name: 'Potassium', weight: 39.0983, symbol: 'K' },
-  { position: 20, name: 'Calcium', weight: 40.078, symbol: 'Ca' },
-];
+    const playersUrl = 'assets/players.json';
+    const playersReq = this.http.get<GetPlayersResponse>(playersUrl);
+
+    apiReq.subscribe((apiData) => {
+      playersReq.subscribe((playersData) => {
+        apiData.Results.forEach((result) => {
+          result.Name =
+            playersData.Players.find(
+              (player) => player.PlayerId === result.PlayerId
+            )?.Name ?? 'Name Not Found';
+        });
+        this.dataSource = new MatTableDataSource(apiData.Results);
+      });
+    });
+  }
+
+  @ViewChild(MatSort) sort: MatSort = {} as MatSort;
+
+  ngAfterViewInit() {
+    this.dataSource.sort = this.sort;
+  }
+
+  announceSortChange(sortState: Sort) {
+    if (sortState.direction) {
+      this._liveAnnouncer.announce(`Sorted ${sortState.direction}ending`);
+    } else {
+      this._liveAnnouncer.announce('Sorting cleared');
+    }
+  }
+}
