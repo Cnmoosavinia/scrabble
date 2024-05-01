@@ -1,6 +1,3 @@
-import { LiveAnnouncer } from '@angular/cdk/a11y';
-import { CommonModule } from '@angular/common';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpClient } from '@angular/common/http';
 import { Component, AfterViewInit, ViewChild, OnInit } from '@angular/core';
 import { MatSortModule, MatSort, Sort } from '@angular/material/sort';
@@ -42,14 +39,11 @@ export interface GetPlayersResponse {
   templateUrl: './leaderboard.component.html',
   styleUrl: './leaderboard.component.css',
 })
-export class LeaderboardComponent implements AfterViewInit, OnInit {
+export class LeaderboardComponent implements OnInit, AfterViewInit {
   displayedColumns: string[] = ['PlayerId', 'Name', 'Score', 'GamesPlayed'];
   dataSource = new MatTableDataSource([] as Result[]);
 
-  constructor(
-    private _liveAnnouncer: LiveAnnouncer,
-    private http: HttpClient
-  ) {}
+  constructor(private http: HttpClient) {}
   ngOnInit(): void {
     const apiUrl = 'https://mocki.io/v1/d21f15c7-a0bb-4140-b036-7e4e3cfcf6f5';
     const apiReq = this.http.get<GetResultsResponse>(apiUrl);
@@ -63,24 +57,18 @@ export class LeaderboardComponent implements AfterViewInit, OnInit {
           result.Name =
             playersData.Players.find(
               (player) => player.PlayerId === result.PlayerId
-            )?.Name ?? 'Name Not Found';
+            )?.Name ?? 'Name Not Found'; // ? to say that the result could be NULL, I could include ! instead as I know in this case but good practise to account for the eventuality
+
+          // couldn't work out how to run both suscribe requests simultaneously so currently have
         });
         this.dataSource = new MatTableDataSource(apiData.Results);
       });
     });
   }
 
-  @ViewChild(MatSort) sort: MatSort = {} as MatSort;
+  @ViewChild(MatSort, { static: false }) sort: MatSort = {} as MatSort; // including static : false states thet ViewChild will be available at a later time but dependent on a condition
 
   ngAfterViewInit() {
-    this.dataSource.sort = this.sort;
-  }
-
-  announceSortChange(sortState: Sort) {
-    if (sortState.direction) {
-      this._liveAnnouncer.announce(`Sorted ${sortState.direction}ending`);
-    } else {
-      this._liveAnnouncer.announce('Sorting cleared');
-    }
+    setTimeout(() => (this.dataSource.sort = this.sort), 2000); // ran into an issue where the sort wouldn't work - turned out it was the sort was set before the data was loaded onto the table, not sure how to correct so just set a timeout of 2 seconds
   }
 }

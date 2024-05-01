@@ -2,8 +2,9 @@
   mat-table
   [dataSource]="dataSource"
   matSort
-  (matSortChange)="announceSortChange($event)"
-  class="mat-elevation-z8"
+  matSortActive="Score"
+  matSortDirection="desc"
+  matSortDisableClear
 >
   <!-- Position Column -->
   <ng-container matColumnDef="PlayerId">
@@ -14,7 +15,13 @@
   </ng-container>
 
   <ng-container matColumnDef="Name">
-    <mat-header-cell *matHeaderCellDef mat-sort-header> Name </mat-header-cell>
+    <mat-header-cell
+      *matHeaderCellDef
+      mat-sort-header
+      sortActionDescription="Sort by number"
+    >
+      Name
+    </mat-header-cell>
     <mat-cell *matCellDef="let results"> {{ results.Name }} </mat-cell>
   </ng-container>
 
